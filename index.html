@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Права и Отговорности - Kahoot Игра</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: radial-gradient(circle at 50% 20%, #46178f 0%, #25076b 60%, #130238 100%);
+      min-height: 100vh;
+      color: #ffffff;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    .kahoot-font {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .btn-red {
+      background-color: #e21b3c;
+      box-shadow: 0 6px 0 #9b1027;
+      transition: all 0.1s ease-in-out;
+    }
+    .btn-red:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #9b1027;
+    }
+    .btn-blue {
+      background-color: #1368ce;
+      box-shadow: 0 6px 0 #0c4285;
+      transition: all 0.1s ease-in-out;
+    }
+    .btn-blue:active:not(:disabled) {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #0c4285;
+    }
+    .btn-green {
+      background-color: #26890c;
+      box-shadow: 0 6px 0 #165306;
+    }
+    .btn-green:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #165306;
+    }
+    .btn-gold {
+      background-color: #d89e00;
+      box-shadow: 0 6px 0 #8c6700;
+    }
+    .pulse-scale {
+      animation: pulseScale 1.5s infinite ease-in-out;
+    }
+    @keyframes pulseScale {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .timer-circle {
+      transition: stroke-dashoffset 1s linear;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-100">
+
+  <header class="w-full px-4 py-3 flex justify-between items-center bg-black/30 backdrop-blur-md border-b border-white/10 z-50">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="app.showRoleSelect()">
+      <div class="w-10 h-10 rounded-xl bg-amber-400 text-purple-950 font-black flex items-center justify-center text-2xl shadow-lg transform -rotate-3">
+        K!
+      </div>
+      <div>
+        <h1 class="text-xl font-black tracking-wider text-white">ПРАВА И ОТГОВОРНОСТИ</h1>
+        <p class="text-xs text-purple-200">Интерактивна викторина за училище</p>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <button id="soundToggleBtn" onclick="soundManager.toggle()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-bold flex items-center gap-2 transition border border-white/15">
+        <i id="soundIcon" class="fas fa-volume-up text-amber-300"></i>
+        <span class="hidden sm:inline" id="soundLabel">Звук</span>
+      </button>
+      <button onclick="app.showRoleSelect()" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs sm:text-sm font-bold transition border border-white/15">
+        <i class="fas fa-home mr-1"></i> Начало
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 flex flex-col items-center justify-center p-4 relative w-full max-w-5xl mx-auto">
+
+    <!-- VIEW 0: Role Selection (Choose Host / Student / Demo) -->
+    <div id="roleSelectView" class="w-full max-w-xl text-center flex flex-col items-center">
+      <div class="inline-block p-4 mb-3 rounded-full bg-purple-500/20 border border-purple-400/30">
+        <i class="fas fa-balance-scale text-5xl text-amber-300"></i>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold mb-2 tracking-tight">Добре дошли в играта!</h2>
+      <p class="text-purple-200 mb-8 max-w-md text-sm sm:text-base">
+        Научете разликата между правата и отговорностите в училище по забавен и състезателен начин.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-6">
+        <!-- Host Button -->
+        <button onclick="app.startAsHost()" class="group relative p-6 rounded-2xl glass-card hover:bg-purple-600/30 border-2 border-purple-400/40 hover:border-amber-400 text-left transition transform hover:-translate-y-1 shadow-xl">
+          <div class="w-12 h-12 rounded-xl bg-amber-400 text-purple-950 flex items-center justify-center text-2xl font-black mb-3">
+            <i class="fas fa-chalkboard-teacher"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white group-hover:text-amber-300 transition">Учител / Водещ</h3>
+          <p class="text-xs text-purple-200 mt-1">
+            Създай стая с ПИН код за целия клас и прожектирай въпросите и класацията.
+          </p>
+          <span class="inline-block mt-4 text-xs font-bold text-amber-300">Стартирай игра &rarr;</span>
+        </button>
+
+        <!-- Player Button -->
+        <button onclick="app.startAsPlayer()" class="group relative p-6 rounded-2xl glass-card hover:bg-blue-600/30 border-2 border-blue-400/40 hover:border-sky-300 text-left transition transform hover:-translate-y-1 shadow-xl">
+          <div class="w-12 h-12 rounded-xl bg-sky-400 text-slate-950 flex items-center justify-center text-2xl font-black mb-3">
+            <i class="fas fa-gamepad"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white group-hover:text-sky-300 transition">Ученик / Играч</h3>
+          <p class="text-xs text-purple-200 mt-1">
+            Въведи ПИН код, избери си име и отговаряй директно от своя телефон или таблет.
+          </p>
+          <span class="inline-block mt-4 text-xs font-bold text-sky-300">Влез с ПИН &rarr;</span>
+        </button>
+      </div>
+
+      <!-- Quick Single / Bot Demo Button -->
+      <button onclick="app.startDemoMode()" class="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg transition flex items-center gap-2">
+        <i class="fas fa-robot"></i> Бърз тест / Демо режим (с виртуални съученици)
+      </button>
+    </div>
+
+    <!-- VIEW 1: HOST LOBBY -->
+    <div id="hostLobbyView" class="hidden w-full flex flex-col items-center">
+      <div class="glass-card w-full rounded-3xl p-6 sm:p-8 flex flex-col items-center border border-white/20 shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-500 via-amber-400 to-blue-500"></div>
+
+        <div class="flex flex-col sm:flex-row justify-between items-center w-full gap-4 mb-6">
+          <div class="text-center sm:text-left">
+            <span class="text-xs font-black tracking-widest text-amber-300 uppercase">Присъединете се сега</span>
+            <div class="text-sm text-purple-200">Отворете играта и въведете ПИН:</div>
+          </div>
+          
+          <div class="bg-black/50 px-8 py-3 rounded-2xl border-2 border-amber-400 shadow-inner text-center">
+            <span class="text-xs text-purple-300 block uppercase font-bold tracking-wider">ПИН за играта</span>
+            <span id="hostPinDisplay" class="text-4xl sm:text-5xl font-black text-amber-300 tracking-widest kahoot-font font-mono">1234</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="bg-purple-900/60 px-4 py-2 rounded-xl border border-white/10 text-center">
+              <span id="playerCountDisplay" class="text-2xl font-black text-white">0</span>
+              <span class="text-xs text-purple-200 block">ученици</span>
+            </div>
+            <button onclick="hostController.openStudentWindow()" title="Отвори ученически екран в нов прозорец/раздел за тест" class="p-3 bg-sky-500/20 hover:bg-sky-500/30 rounded-xl border border-sky-400/30 text-xs font-bold text-sky-200 flex items-center gap-1 transition">
+              <i class="fas fa-external-link-alt text-sky-300"></i> Тест ученик
+            </button>
+            <button onclick="hostController.addDemoBots()" title="Добави виртуални ученици за тест" class="p-3 bg-white/10 hover:bg-white/20 rounded-xl border border-white/15 text-xs font-bold text-purple-200 flex items-center gap-1 transition">
+              <i class="fas fa-user-plus text-amber-300"></i> +Ботове
+            </button>
+          </div>
+        </div>
+
+        <!-- Waiting player list / name tags -->
+        <div class="w-full bg-black/25 rounded-2xl p-6 min-h-[220px] max-h-[300px] overflow-y-auto custom-scrollbar border border-white/10 mb-6 flex flex-wrap content-start gap-3 items-center justify-center">
+          <div id="noPlayersHint" class="text-purple-300 text-sm flex flex-col items-center justify-center py-8">
+            <i class="fas fa-spinner fa-spin text-3xl mb-3 text-amber-300"></i>
+            <span>Очакваме учениците да се включат...</span>
+          </div>
+          <div id="playerChipsContainer" class="flex flex-wrap gap-2.5 justify-center w-full"></div>
+        </div>
+
+        <div class="w-full flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div class="text-xs text-purple-300 flex items-center gap-2">
+            <i class="fas fa-info-circle text-amber-400"></i> 20 въпроса: Права или Отговорности
+          </div>
+          <button id="startGameBtn" onclick="hostController.startGame()" class="w-full sm:w-auto px-10 py-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-xl shadow-xl transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fas fa-play mr-2"></i> СТАРТИРАЙ ИГРАТА
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 2: HOST ACTIVE QUESTION & RESULTS -->
+    <div id="hostQuestionView" class="hidden w-full flex flex-col items-center">
+      
+      <!-- Top Bar: Progress and Timer -->
+      <div class="w-full flex justify-between items-center mb-4 px-2">
+        <div class="flex items-center gap-2">
+          <span class="px-3 py-1 rounded-full bg-white/20 text-xs font-black uppercase text-amber-300" id="hostQuestionCounter">Въпрос 1 от 20</span>
+          <span class="text-xs text-purple-200 hidden sm:inline">Права, отговорности и уважение</span>
+        </div>
+
+        <!-- Answers received indicator -->
+        <div class="bg-black/40 px-4 py-1.5 rounded-full border border-white/15 text-xs font-bold text-purple-200">
+          Отговорили: <span id="hostAnswersCount" class="text-amber-300 font-black">0</span> / <span id="hostTotalStudents">0</span>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="w-full glass-card rounded-3xl p-6 sm:p-10 mb-6 text-center border border-white/20 shadow-2xl relative min-h-[160px] flex flex-col justify-center items-center">
+        <!-- Floating Circular Timer -->
+        <div id="hostTimerBadge" class="absolute -top-6 left-1/2 transform -translate-x-1/2 w-14 h-14 rounded-full bg-purple-900 border-4 border-amber-400 shadow-xl flex items-center justify-center text-xl font-black text-amber-300">
+          20
+        </div>
+        <h2 id="hostQuestionText" class="text-2xl sm:text-4xl font-extrabold text-white leading-snug tracking-tight max-w-3xl mt-2">
+          Зареждане на въпрос...
+        </h2>
+        <span class="text-xs text-purple-300 uppercase tracking-widest mt-3 font-bold">Право или отговорност?</span>
+      </div>
+
+      <!-- Live Answers Option Panels / Histogram -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-6">
+        <!-- Option 1: ПРАВО (Red / Triangle) -->
+        <div id="hostOptionRed" class="btn-red p-6 sm:p-8 rounded-2xl flex flex-col justify-between text-white shadow-xl relative overflow-hidden transition-all duration-300">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl"><i class="fas fa-play transform -rotate-90"></i></span>
+              <span class="text-2xl sm:text-3xl font-black tracking-wide">ПРАВО</span>
+            </div>
+            <!-- Answer count & percentage bar for results -->
+            <div id="redCountBadge" class="text-2xl font-black bg-black/30 px-3 py-1 rounded-xl hidden">
+              <span id="redVotes">0</span>
+            </div>
+          </div>
+          <!-- Reveal Checkmark -->
+          <div id="redCheckmark" class="hidden absolute top-4 right-4 text-3xl text-emerald-300">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+
+        <!-- Option 2: ОТГОВОРНОСТ (Blue / Diamond) -->
+        <div id="hostOptionBlue" class="btn-blue p-6 sm:p-8 rounded-2xl flex flex-col justify-between text-white shadow-xl relative overflow-hidden transition-all duration-300">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <span class="text-3xl"><i class="fas fa-square transform rotate-45"></i></span>
+              <span class="text-2xl sm:text-3xl font-black tracking-wide">ОТГОВОРНОСТ</span>
+            </div>
+            <div id="blueCountBadge" class="text-2xl font-black bg-black/30 px-3 py-1 rounded-xl hidden">
+              <span id="blueVotes">0</span>
+            </div>
+          </div>
+          <!-- Reveal Checkmark -->
+          <div id="blueCheckmark" class="hidden absolute top-4 right-4 text-3xl text-emerald-300">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Explanation & Next Controls for Host -->
+      <div id="hostControlsPanel" class="w-full glass-card rounded-2xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4 hidden">
+        <div class="flex items-center gap-3 text-left">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center text-xl">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <div>
+            <span class="text-xs uppercase tracking-wider text-amber-300 font-bold block">Правилният отговор е:</span>
+            <span id="hostCorrectLabel" class="text-lg font-black text-white">ПРАВО</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="hostController.showLeaderboard()" class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold text-white shadow-lg transition">
+            <i class="fas fa-trophy mr-1.5 text-amber-300"></i> Класиране
+          </button>
+          <button onclick="hostController.nextQuestion()" class="px-6 py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black shadow-lg transition">
+            Следващ въпрос <i class="fas fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: HOST LEADERBOARD (Between rounds) -->
+    <div id="hostLeaderboardView" class="hidden w-full max-w-2xl flex flex-col items-center">
+      <div class="glass-card w-full rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl flex flex-col items-center">
+        <div class="text-amber-400 text-3xl mb-1"><i class="fas fa-medal"></i></div>
+        <h2 class="text-2xl sm:text-3xl font-black mb-1">Временно класиране</h2>
+        <p class="text-xs text-purple-200 mb-6" id="leaderboardRoundSubtitle">След въпрос 1 от 20</p>
+
+        <!-- Leaderboard items -->
+        <div id="leaderboardList" class="w-full flex flex-col gap-2.5 mb-6 max-h-[360px] overflow-y-auto custom-scrollbar">
+          <!-- Populated dynamically -->
+        </div>
+
+        <button onclick="hostController.nextQuestion()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-purple-950 font-black text-lg shadow-xl transition">
+          Продължи напред &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 4: FINAL PODIUM (Game Finished) -->
+    <div id="hostPodiumView" class="hidden w-full max-w-3xl flex flex-col items-center text-center">
+      <h2 class="text-3xl sm:text-5xl font-black text-amber-300 mb-2">ПОБЕДИТЕЛИ!</h2>
+      <p class="text-purple-200 mb-8 text-sm sm:text-base">Поздравления на целия клас за отличното познаване на правата и отговорностите!</p>
+
+      <!-- 3-Place Podium -->
+      <div class="flex justify-center items-end gap-3 sm:gap-6 w-full max-w-xl mb-8 min-h-[260px]">
+        <!-- 2nd place -->
+        <div class="flex-1 flex flex-col items-center">
+          <div class="text-2xl mb-1">🥈</div>
+          <div id="podium2Name" class="font-black text-sm sm:text-base truncate max-w-[120px]">---</div>
+          <div id="podium2Score" class="text-xs text-purple-300 font-bold mb-2">0 т.</div>
+          <div class="w-full bg-gradient-to-t from-slate-400 to-slate-200 text-purple-950 font-black text-2xl sm:text-4xl py-8 rounded-t-2xl shadow-xl border-t-4 border-slate-100 flex items-center justify-center">
+            2
+          </div>
+        </div>
+
+        <!-- 1st place -->
+        <div class="flex-1 flex flex-col items-center">
+          <div class="text-3xl mb-1 animate-bounce">👑</div>
+          <div id="podium1Name" class="font-black text-base sm:text-lg text-amber-300 truncate max-w-[130px]">---</div>
+          <div id="podium1Score" class="text-xs text-amber-200 font-bold mb-2">0 т.</div>
+          <div class="w-full bg-gradient-to-t from-amber-500 to-amber-300 text-purple-950 font-black text-3xl sm:text-5xl py-14 rounded-t-2xl shadow-2xl border-t-4 border-amber-200 flex items-center justify-center">
+            1
+          </div>
+        </div>
+
+        <!-- 3rd place -->
+        <div class="flex-1 flex flex-col items-center">
+          <div class="text-2xl mb-1">🥉</div>
+          <div id="podium3Name" class="font-black text-sm sm:text-base truncate max-w-[120px]">---</div>
+          <div id="podium3Score" class="text-xs text-purple-300 font-bold mb-2">0 т.</div>
+          <div class="w-full bg-gradient-to-t from-amber-700 to-amber-600 text-purple-950 font-black text-xl sm:text-3xl py-5 rounded-t-2xl shadow-xl border-t-4 border-amber-500 flex items-center justify-center">
+            3
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3 justify-center">
+        <button onclick="app.showRoleSelect()" class="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold transition shadow-lg">
+          <i class="fas fa-redo mr-2"></i> Нова игра
+        </button>
+      </div>
+    </div>
+
+    <!-- VIEW 5: STUDENT LOGIN (PIN & Nickname) -->
+    <div id="studentLoginView" class="hidden w-full max-w-md flex flex-col items-center">
+      <div class="glass-card w-full rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl flex flex-col items-center">
+        
+        <div class="w-14 h-14 rounded-2xl bg-sky-400 text-purple-950 flex items-center justify-center text-3xl font-black mb-3 shadow-lg transform rotate-3">
+          <i class="fas fa-user-graduate"></i>
+        </div>
+        <h2 class="text-2xl font-black mb-1">Вход за ученик</h2>
+        <p class="text-xs text-purple-200 mb-6 text-center">Въведи ПИН кода, който учителят показва на екрана.</p>
+
+        <form id="studentJoinForm" onsubmit="playerController.handleJoin(event)" class="w-full flex flex-col gap-4">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-purple-300 font-bold mb-1">ПИН за играта</label>
+            <input type="text" id="studentPinInput" maxlength="6" placeholder="напр. 1234" required
+              class="w-full px-4 py-3.5 rounded-xl bg-black/40 border-2 border-white/20 focus:border-amber-400 focus:outline-none text-2xl font-black text-center tracking-widest text-amber-300 uppercase placeholder:text-gray-600">
+          </div>
+
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-purple-300 font-bold mb-1">Твоето име / Псевдоним</label>
+            <input type="text" id="studentNameInput" maxlength="18" placeholder="напр. Алекс" required
+              class="w-full px-4 py-3.5 rounded-xl bg-black/40 border-2 border-white/20 focus:border-sky-400 focus:outline-none text-lg font-bold text-center text-white placeholder:text-gray-500">
+          </div>
+
+          <!-- Avatar selection -->
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-purple-300 font-bold mb-2 text-center">Избери си аватар</label>
+            <div id="avatarList" class="flex justify-center gap-2">
+              <!-- Dynamically populated or static avatars -->
+              <button type="button" onclick="playerController.selectAvatar('🦁')" class="avatar-opt text-2xl p-2 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-amber-400">🦁</button>
+              <button type="button" onclick="playerController.selectAvatar('🚀')" class="avatar-opt text-2xl p-2 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-transparent">🚀</button>
+              <button type="button" onclick="playerController.selectAvatar('⚡')" class="avatar-opt text-2xl p-2 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-transparent">⚡</button>
+              <button type="button" onclick="playerController.selectAvatar('🦉')" class="avatar-opt text-2xl p-2 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-transparent">🦉</button>
+              <button type="button" onclick="playerController.selectAvatar('⭐')" class="avatar-opt text-2xl p-2 rounded-xl bg-white/10 hover:bg-white/20 border-2 border-transparent">⭐</button>
+            </div>
+          </div>
+
+          <button type="submit" class="w-full py-4 rounded-xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-black text-lg shadow-xl transition transform active:scale-95 mt-2">
+            ВЛЕЗ В ИГРАТА
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+    <!-- VIEW 6: STUDENT WAITING ROOM -->
+    <div id="studentWaitingView" class="hidden w-full max-w-md flex flex-col items-center text-center">
+      <div class="glass-card w-full rounded-3xl p-8 border border-white/20 shadow-2xl flex flex-col items-center">
+        <div id="studentAvatarDisplay" class="text-6xl mb-4 animate-bounce">🦁</div>
+        <h3 id="studentGreetingName" class="text-2xl font-black text-white mb-1">Здравей, Алекс!</h3>
+        <p class="text-sm text-purple-200 mb-6">Ти си в играта!</p>
+
+        <div class="bg-black/30 w-full py-4 px-6 rounded-2xl border border-white/10 mb-6">
+          <span class="text-xs text-purple-300 block uppercase font-bold tracking-wider">ПИН на стаята</span>
+          <span id="studentRoomPin" class="text-2xl font-black text-amber-300">----</span>
+        </div>
+
+        <div class="flex items-center gap-3 text-purple-300 text-sm">
+          <i class="fas fa-circle-notch fa-spin text-amber-300"></i>
+          <span>Гледай екрана на учителя. Играта ще започне скоро...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 7: STUDENT ANSWER PAD (Big Red & Blue Buttons) -->
+    <div id="studentAnswerView" class="hidden w-full max-w-lg flex flex-col items-center">
+      <!-- Player Header: Score & Streak -->
+      <div class="w-full flex justify-between items-center mb-3 px-2">
+        <div class="flex items-center gap-2">
+          <span id="studentPlayerAvatar" class="text-xl">🦁</span>
+          <span id="studentPlayerName" class="font-bold text-sm">Алекс</span>
+        </div>
+        <div class="bg-black/40 px-3 py-1 rounded-full text-xs font-black text-amber-300">
+          Точки: <span id="studentScoreDisplay">0</span>
+        </div>
+      </div>
+
+      <!-- Question Preview on Mobile -->
+      <div class="w-full glass-card rounded-2xl p-4 mb-4 text-center border border-white/15">
+        <span class="text-xs font-bold text-amber-300 uppercase tracking-wider block mb-1">Въпрос</span>
+        <p id="studentQuestionShort" class="text-base sm:text-lg font-extrabold text-white leading-tight">
+          Да бъда в безопасност в училище.
+        </p>
+      </div>
+
+      <!-- 2 Big Responsive Touch Buttons -->
+      <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 h-[320px] sm:h-[280px]">
+        <!-- RED: ПРАВО -->
+        <button id="studentBtnRed" onclick="playerController.submitVote('PRAVO')"
+          class="btn-red rounded-3xl flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer shadow-2xl transform active:scale-95 transition-all">
+          <i class="fas fa-play text-4xl mb-2 transform -rotate-90"></i>
+          <span class="text-3xl font-black tracking-wider">ПРАВО</span>
+        </button>
+
+        <!-- BLUE: ОТГОВОРНОСТ -->
+        <button id="studentBtnBlue" onclick="playerController.submitVote('OTGOVORNOST')"
+          class="btn-blue rounded-3xl flex flex-col items-center justify-center p-6 text-white text-center cursor-pointer shadow-2xl transform active:scale-95 transition-all">
+          <i class="fas fa-square text-4xl mb-2 transform rotate-45"></i>
+          <span class="text-2xl sm:text-3xl font-black tracking-wider">ОТГОВОРНОСТ</span>
+        </button>
+      </div>
+
+      <div class="text-center text-xs text-purple-300 mt-4">
+        <i class="fas fa-bolt text-amber-400"></i> Колкото по-бързо отговориш правилно, толкова повече точки получаваш!
+      </div>
+    </div>
+
+    <!-- VIEW 8: STUDENT ANSWER SUBMITTED / FEEDBACK -->
+    <div id="studentFeedbackView" class="hidden w-full max-w-md flex flex-col items-center text-center">
+      <div id="feedbackCard" class="glass-card w-full rounded-3xl p-8 border border-white/20 shadow-2xl flex flex-col items-center">
+        <div id="feedbackIcon" class="text-6xl mb-4">
+          <i class="fas fa-check-circle text-emerald-400"></i>
+        </div>
+        <h3 id="feedbackTitle" class="text-3xl font-black mb-2">Отговорът е приет!</h3>
+        <p id="feedbackSubtitle" class="text-sm text-purple-200 mb-4">Очаквай резултатите от въпроса...</p>
+        
+        <div id="feedbackPointsBadge" class="hidden bg-amber-400 text-purple-950 font-black text-xl px-6 py-2 rounded-2xl shadow-lg mb-4 animate-bounce">
+          +920 точки!
+        </div>
+
+        <div class="text-xs text-purple-300">
+          Гледай таблото на учителя за подробности и класиране.
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Floating Notification Toast (No browser alert) -->
+  <div id="toastMessage" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-900/90 backdrop-blur-md border border-white/20 text-white px-6 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none z-50">
+    <i id="toastIcon" class="fas fa-info-circle text-amber-400"></i>
+    <span id="toastText">Съобщение</span>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInAnonymously, 
+      signInWithCustomToken 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc, 
+      updateDoc, 
+      onSnapshot, 
+      collection,
+      getDocs 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // All 20 questions extracted from the user's provided file: "Въпроси_за_Kahoot_Права_и_отговорности.pdf"
+    const QUESTIONS = [
+      { id: 1, text: "Да бъда в безопасност в училище.", answer: "PRAVO" },
+      { id: 2, text: "Да бъда изслушан, когато изразявам мнение.", answer: "PRAVO" },
+      { id: 3, text: "Да уважавам мнението на друг човек, дори когато не съм съгласен с него.", answer: "OTGOVORNOST" },
+      { id: 4, text: "Да получавам помощ, когато изпитвам затруднение.", answer: "PRAVO" },
+      { id: 5, text: "Да идвам навреме за учебните часове.", answer: "OTGOVORNOST" },
+      { id: 6, text: "Да не преча на останалите ученици да учат.", answer: "OTGOVORNOST" },
+      { id: 7, text: "Да пазя училищните мебели, техника и учебници.", answer: "OTGOVORNOST" },
+      { id: 8, text: "Да уча в спокойна и сигурна среда.", answer: "PRAVO" },
+      { id: 9, text: "Да не обиждам и унижавам други ученици.", answer: "OTGOVORNOST" },
+      { id: 10, text: "Да мога да задавам въпроси, когато не разбирам.", answer: "PRAVO" },
+      { id: 11, text: "Да нося необходимите материали за работа.", answer: "OTGOVORNOST" },
+      { id: 12, text: "Да бъда третиран справедливо.", answer: "PRAVO" },
+      { id: 13, text: "Да уважавам личното пространство на другите.", answer: "OTGOVORNOST" },
+      { id: 14, text: "Да пазя чуждите вещи.", answer: "OTGOVORNOST" },
+      { id: 15, text: "Да мога да изразя мнение, различно от мнението на останалите.", answer: "PRAVO" },
+      { id: 16, text: "Да призная, когато съм направил грешка.", answer: "OTGOVORNOST" },
+      { id: 17, text: "Да не разпространявам снимки или информация за друг ученик без неговото съгласие.", answer: "OTGOVORNOST" },
+      { id: 18, text: "Да поискам помощ от възрастен, когато имам проблем.", answer: "PRAVO" },
+      { id: 19, text: "Да спазвам правилата, които важат за всички ученици.", answer: "OTGOVORNOST" },
+      { id: 20, text: "Да участвам в живота на училището.", answer: "PRAVO" }
+    ];
+
+    class SoundManager {
+      constructor() {
+        this.enabled = true;
+        this.initialized = false;
+        this.synth = null;
+        this.polySynth = null;
+      }
+
+      async init() {
+        if (this.initialized) return;
+        try {
+          await Tone.start();
+          this.synth = new Tone.Synth({
+            oscillator: { type: "triangle" },
+            envelope: { attack: 0.01, decay: 0.1, sustain: 0.1, release: 0.5 }
+          }).toDestination();
+
+          this.polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+          this.polySynth.volume.value = -6;
+          this.initialized = true;
+        } catch (e) {
+          console.log("Audio context started on user gesture");
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        const icon = document.getElementById('soundIcon');
+        const label = document.getElementById('soundLabel');
+        if (this.enabled) {
+          icon.className = "fas fa-volume-up text-amber-300";
+          label.textContent = "Звук: Вкл";
+        } else {
+          icon.className = "fas fa-volume-mute text-gray-400";
+          label.textContent = "Звук: Изкл";
+        }
+      }
+
+      playClick() {
+        if (!this.enabled || !this.initialized) return;
+        this.synth.triggerAttackRelease("C5", "16n");
+      }
+
+      playCorrect() {
+        if (!this.enabled || !this.initialized) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease("C5", "8n", now);
+        this.synth.triggerAttackRelease("E5", "8n", now + 0.1);
+        this.synth.triggerAttackRelease("G5", "8n", now + 0.2);
+        this.synth.triggerAttackRelease("C6", "4n", now + 0.3);
+      }
+
+      playWrong() {
+        if (!this.enabled || !this.initialized) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease("F3", "8n", now);
+        this.synth.triggerAttackRelease("Db3", "4n", now + 0.15);
+      }
+
+      playPlayerJoin() {
+        if (!this.enabled || !this.initialized) return;
+        const now = Tone.now();
+        this.synth.triggerAttackRelease("G4", "16n", now);
+        this.synth.triggerAttackRelease("C5", "16n", now + 0.08);
+      }
+
+      playTick() {
+        if (!this.enabled || !this.initialized) return;
+        this.synth.triggerAttackRelease("A5", "32n");
+      }
+
+      playFanfare() {
+        if (!this.enabled || !this.initialized) return;
+        const now = Tone.now();
+        this.polySynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "8n", now);
+        this.polySynth.triggerAttackRelease(["F4", "A4", "C5", "F5"], "8n", now + 0.25);
+        this.polySynth.triggerAttackRelease(["G4", "B4", "D5", "G5"], "4n", now + 0.5);
+        this.polySynth.triggerAttackRelease(["C5", "E5", "G5", "C6"], "2n", now + 0.8);
+      }
+    }
+    const soundManager = new SoundManager();
+    window.soundManager = soundManager;
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'kahoot-prava-otgovornosti-bg';
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let firebaseActive = false;
+    let broadcastChannel = null;
+
+    async function initFirebase() {
+      // Local broadcast channel for multi-tab instantaneous synchronization
+      try {
+        broadcastChannel = new BroadcastChannel('kahoot_realtime_bus');
+        broadcastChannel.onmessage = (event) => {
+          const { type, payload } = event.data || {};
+          if (type === 'STUDENT_JOIN' && hostController.pin && payload.pin === hostController.pin) {
+            hostController.onPlayerJoined(payload.player);
+          } else if (type === 'STUDENT_ANSWER' && hostController.pin && payload.pin === hostController.pin) {
+            hostController.handleIncomingAnswers({ [payload.uid]: payload.answer });
+          } else if (type === 'HOST_QUESTION' && playerController.pin && payload.pin === playerController.pin) {
+            playerController.onCloudQuestionStart(payload.questionData);
+          } else if (type === 'HOST_REVEAL' && playerController.pin && payload.pin === playerController.pin) {
+            playerController.onCloudQuestionRevealed(payload.correctAnswer, payload.players);
+          }
+        };
+      } catch (err) {
+        console.warn("BroadcastChannel not available in this context:", err);
+      }
+
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          const cfg = JSON.parse(__firebase_config);
+          const app = initializeApp(cfg);
+          db = getFirestore(app);
+          auth = getAuth(app);
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+          currentUser = auth.currentUser;
+          firebaseActive = true;
+          console.log("Firebase sync active. UID:", currentUser?.uid);
+        } catch (err) {
+          console.warn("Firebase initialization fallback to memory/broadcast channel:", err);
+          firebaseActive = false;
+        }
+      }
+    }
+
+    function showToast(text, iconClass = "fa-info-circle") {
+      const toast = document.getElementById('toastMessage');
+      const toastText = document.getElementById('toastText');
+      const toastIcon = document.getElementById('toastIcon');
+      toastText.textContent = text;
+      toastIcon.className = `fas ${iconClass} text-amber-400`;
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none');
+      }, 3200);
+    }
+
+    const app = {
+      currentView: 'roleSelectView',
+      views: [
+        'roleSelectView',
+        'hostLobbyView',
+        'hostQuestionView',
+        'hostLeaderboardView',
+        'hostPodiumView',
+        'studentLoginView',
+        'studentWaitingView',
+        'studentAnswerView',
+        'studentFeedbackView'
+      ],
+
+      switchView(viewId) {
+        soundManager.init();
+        this.views.forEach(v => {
+          const el = document.getElementById(v);
+          if (el) {
+            if (v === viewId) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+          }
+        });
+        this.currentView = viewId;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      },
+
+      showRoleSelect() {
+        hostController.cleanup();
+        playerController.cleanup();
+        this.switchView('roleSelectView');
+      },
+
+      startAsHost() {
+        this.switchView('hostLobbyView');
+        hostController.initHostRoom();
+      },
+
+      startAsPlayer() {
+        this.switchView('studentLoginView');
+      },
+
+      startDemoMode() {
+        this.switchView('hostLobbyView');
+        hostController.initHostRoom(true);
+      }
+    };
+    window.app = app;
+
+    const hostController = {
+      pin: '',
+      isDemo: false,
+      players: {}, // { id: { name, avatar, score, streak, lastAnswer } }
+      questionIndex: 0,
+      timerSeconds: 20,
+      timerInterval: null,
+      questionStartTime: 0,
+      questionStatus: 'idle', // 'reading', 'revealed'
+      unsubscribeRoom: null,
+
+      async initHostRoom(demo = false) {
+        this.isDemo = demo;
+        this.pin = Math.floor(1000 + Math.random() * 9000).toString();
+        this.players = {};
+        this.questionIndex = 0;
+
+        document.getElementById('hostPinDisplay').textContent = this.pin;
+        this.updatePlayersUI();
+
+        if (demo) {
+          this.addDemoBots();
+        }
+
+        // Firestore Room document creation (Strict Rule 1: 6 segments with 'rooms' collection)
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            await setDoc(roomRef, {
+              pin: this.pin,
+              status: 'LOBBY',
+              currentQuestionIndex: 0,
+              questionTotal: QUESTIONS.length,
+              hostUid: currentUser.uid,
+              players: {},
+              answers: {},
+              updatedAt: Date.now()
+            });
+
+            this.listenToRoom(roomRef);
+          } catch (e) {
+            console.error("Firestore host init error:", e);
+          }
+        }
+      },
+
+      openStudentWindow() {
+        soundManager.playClick();
+        const url = new URL(window.location.href);
+        url.searchParams.set('join_pin', this.pin);
+        window.open(url.toString(), '_blank');
+      },
+
+      listenToRoom(roomRef) {
+        if (!firebaseActive) return;
+        this.unsubscribeRoom = onSnapshot(roomRef, (snap) => {
+          if (!snap.exists()) return;
+          const data = snap.data();
+          if (data.players) {
+            const previousCount = Object.keys(this.players).length;
+            this.players = { ...this.players, ...data.players };
+            this.updatePlayersUI();
+            if (Object.keys(this.players).length > previousCount) {
+              soundManager.playPlayerJoin();
+            }
+          }
+          if (data.answers && this.questionStatus === 'reading') {
+            this.handleIncomingAnswers(data.answers);
+          }
+        }, (err) => console.warn("Host snapshot error:", err));
+      },
+
+      onPlayerJoined(player) {
+        if (!player || !player.id) return;
+        const isNew = !this.players[player.id];
+        this.players[player.id] = player;
+        this.updatePlayersUI();
+        if (isNew) {
+          soundManager.playPlayerJoin();
+          showToast(`${player.name} се присъедини! 🎉`, "fa-user-check");
+        }
+      },
+
+      addDemoBots() {
+        soundManager.playClick();
+        const botNames = [
+          { name: "Мартин 🦁", avatar: "🦁" },
+          { name: "Елена 🚀", avatar: "🚀" },
+          { name: "Борис ⚡", avatar: "⚡" },
+          { name: "София 🦉", avatar: "🦉" },
+          { name: "Димитър ⭐", avatar: "⭐" },
+          { name: "Виктория 🌸", avatar: "🌸" }
+        ];
+
+        botNames.forEach((b, idx) => {
+          const botId = `bot_${idx}`;
+          if (!this.players[botId]) {
+            this.players[botId] = {
+              id: botId,
+              name: b.name,
+              avatar: b.avatar,
+              score: 0,
+              streak: 0,
+              lastAnswer: null,
+              answerTime: 0,
+              isBot: true
+            };
+          }
+        });
+
+        this.updatePlayersUI();
+        this.syncPlayersToCloud();
+        showToast("Добавени са виртуални ученици!", "fa-user-check");
+      },
+
+      updatePlayersUI() {
+        const count = Object.keys(this.players).length;
+        document.getElementById('playerCountDisplay').textContent = count;
+        const container = document.getElementById('playerChipsContainer');
+        const hint = document.getElementById('noPlayersHint');
+        const startBtn = document.getElementById('startGameBtn');
+
+        container.innerHTML = '';
+        if (count === 0) {
+          hint.classList.remove('hidden');
+          startBtn.disabled = true;
+        } else {
+          hint.classList.add('hidden');
+          startBtn.disabled = false;
+
+          Object.values(this.players).forEach(p => {
+            const chip = document.createElement('div');
+            chip.className = "px-4 py-2.5 bg-white/15 hover:bg-white/25 rounded-2xl border border-white/20 font-bold text-sm text-white flex items-center gap-2 transform transition hover:scale-105 animate-fade-in shadow-md";
+            chip.innerHTML = `<span class="text-xl">${p.avatar || '🎓'}</span> <span class="tracking-wide">${p.name}</span>`;
+            container.appendChild(chip);
+          });
+        }
+      },
+
+      async syncPlayersToCloud() {
+        if (!firebaseActive || !currentUser) return;
+        try {
+          const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+          await updateDoc(roomRef, {
+            players: this.players,
+            updatedAt: Date.now()
+          });
+        } catch (e) {
+          console.error("Cloud sync player error:", e);
+        }
+      },
+
+      async startGame() {
+        if (Object.keys(this.players).length === 0) {
+          showToast("Поне един ученик трябва да се присъедини!", "fa-exclamation-circle");
+          return;
+        }
+        soundManager.playClick();
+        this.questionIndex = 0;
+        this.loadQuestion(0);
+      },
+
+      async loadQuestion(index) {
+        if (index >= QUESTIONS.length) {
+          this.showFinalPodium();
+          return;
+        }
+
+        this.questionIndex = index;
+        this.questionStatus = 'reading';
+        this.questionStartTime = Date.now();
+        this.timerSeconds = 20;
+
+        // Reset player round answers
+        Object.keys(this.players).forEach(id => {
+          this.players[id].lastAnswer = null;
+          this.players[id].answerTime = 0;
+        });
+
+        // Update Host View
+        app.switchView('hostQuestionView');
+        const q = QUESTIONS[index];
+        document.getElementById('hostQuestionCounter').textContent = `Въпрос ${index + 1} от ${QUESTIONS.length}`;
+        document.getElementById('hostQuestionText').textContent = q.text;
+        document.getElementById('hostTimerBadge').textContent = this.timerSeconds;
+        document.getElementById('hostAnswersCount').textContent = "0";
+        document.getElementById('hostTotalStudents').textContent = Object.keys(this.players).length;
+
+        // Hide Results Badges
+        document.getElementById('redCountBadge').classList.add('hidden');
+        document.getElementById('blueCountBadge').classList.add('hidden');
+        document.getElementById('redCheckmark').classList.add('hidden');
+        document.getElementById('blueCheckmark').classList.add('hidden');
+        document.getElementById('hostControlsPanel').classList.add('hidden');
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: 'HOST_QUESTION',
+            payload: { pin: this.pin, questionData: { id: q.id, text: q.text } }
+          });
+        }
+
+        // Cloud sync for students
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            await updateDoc(roomRef, {
+              status: 'QUESTION',
+              currentQuestionIndex: index,
+              questionData: { id: q.id, text: q.text },
+              answers: {},
+              revealed: false,
+              updatedAt: Date.now()
+            });
+          } catch (e) {
+            console.error("Error setting cloud question:", e);
+          }
+        }
+
+        // Start countdown timer
+        clearInterval(this.timerInterval);
+        this.timerInterval = setInterval(() => {
+          this.timerSeconds--;
+          document.getElementById('hostTimerBadge').textContent = this.timerSeconds;
+          if (this.timerSeconds <= 5 && this.timerSeconds > 0) {
+            soundManager.playTick();
+          }
+
+          // Trigger simulated bot answers progressively
+          this.simulateBotAnswers(index);
+
+          if (this.timerSeconds <= 0) {
+            clearInterval(this.timerInterval);
+            this.revealAnswers();
+          }
+        }, 1000);
+      },
+
+      simulateBotAnswers(qIndex) {
+        const correctAns = QUESTIONS[qIndex].answer;
+        Object.values(this.players).forEach(p => {
+          if (p.isBot && !p.lastAnswer) {
+            // Random chance to answer each second
+            if (Math.random() < 0.28 || this.timerSeconds <= 2) {
+              // 85% chance bot chooses correctly
+              const chosen = Math.random() < 0.85 ? correctAns : (correctAns === 'PRAVO' ? 'OTGOVORNOST' : 'PRAVO');
+              p.lastAnswer = chosen;
+              p.answerTime = (20 - this.timerSeconds);
+              this.onAnswerReceived();
+            }
+          }
+        });
+      },
+
+      onAnswerReceived() {
+        const answeredCount = Object.values(this.players).filter(p => p.lastAnswer !== null).length;
+        document.getElementById('hostAnswersCount').textContent = answeredCount;
+
+        // If all students answered early, reveal results immediately!
+        if (answeredCount >= Object.keys(this.players).length) {
+          clearInterval(this.timerInterval);
+          setTimeout(() => this.revealAnswers(), 500);
+        }
+      },
+
+      handleIncomingAnswers(cloudAnswers) {
+        let changed = false;
+        Object.entries(cloudAnswers).forEach(([uid, ans]) => {
+          if (this.players[uid] && !this.players[uid].lastAnswer) {
+            this.players[uid].lastAnswer = ans.choice;
+            this.players[uid].answerTime = ans.timeTaken || 5;
+            changed = true;
+          }
+        });
+        if (changed) this.onAnswerReceived();
+      },
+
+      async revealAnswers() {
+        if (this.questionStatus === 'revealed') return;
+        this.questionStatus = 'revealed';
+        clearInterval(this.timerInterval);
+
+        const currentQ = QUESTIONS[this.questionIndex];
+        const isPravo = currentQ.answer === 'PRAVO';
+
+        // Count votes
+        let redVotes = 0;
+        let blueVotes = 0;
+
+        Object.values(this.players).forEach(p => {
+          if (p.lastAnswer === 'PRAVO') redVotes++;
+          if (p.lastAnswer === 'OTGOVORNOST') blueVotes++;
+
+          // Calculate score based on speed (Kahoot algorithm)
+          if (p.lastAnswer === currentQ.answer) {
+            p.streak = (p.streak || 0) + 1;
+            const timeTaken = p.answerTime || 10;
+            // Base 1000 pts with time decay
+            const speedBonus = Math.max(0, Math.round((1 - (timeTaken / 20) / 2) * 1000));
+            const streakBonus = Math.min(500, p.streak * 50);
+            p.score = (p.score || 0) + speedBonus + streakBonus;
+          } else {
+            p.streak = 0;
+          }
+        });
+
+        // Update Host UI with counts & icons
+        document.getElementById('redVotes').textContent = redVotes;
+        document.getElementById('blueVotes').textContent = blueVotes;
+        document.getElementById('redCountBadge').classList.remove('hidden');
+        document.getElementById('blueCountBadge').classList.remove('hidden');
+
+        if (isPravo) {
+          document.getElementById('redCheckmark').classList.remove('hidden');
+          document.getElementById('hostCorrectLabel').textContent = "ПРАВО";
+          document.getElementById('hostCorrectLabel').className = "text-xl font-black text-rose-400";
+        } else {
+          document.getElementById('blueCheckmark').classList.remove('hidden');
+          document.getElementById('hostCorrectLabel').textContent = "ОТГОВОРНОСТ";
+          document.getElementById('hostCorrectLabel').className = "text-xl font-black text-sky-400";
+        }
+
+        document.getElementById('hostControlsPanel').classList.remove('hidden');
+
+        soundManager.playCorrect();
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: 'HOST_REVEAL',
+            payload: {
+              pin: this.pin,
+              correctAnswer: currentQ.answer,
+              players: this.players
+            }
+          });
+        }
+
+        // Cloud sync results
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            await updateDoc(roomRef, {
+              status: 'REVEALED',
+              correctAnswer: currentQ.answer,
+              players: this.players,
+              updatedAt: Date.now()
+            });
+          } catch (e) {
+            console.error("Cloud reveal sync error:", e);
+          }
+        }
+      },
+
+      showLeaderboard() {
+        soundManager.playClick();
+        app.switchView('hostLeaderboardView');
+        document.getElementById('leaderboardRoundSubtitle').textContent = `След въпрос ${this.questionIndex + 1} от ${QUESTIONS.length}`;
+
+        const listEl = document.getElementById('leaderboardList');
+        listEl.innerHTML = '';
+
+        // Sort players descending by score
+        const sorted = Object.values(this.players).sort((a, b) => b.score - a.score);
+
+        sorted.forEach((p, idx) => {
+          const item = document.createElement('div');
+          const isTop3 = idx < 3;
+          const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+          item.className = `p-3.5 rounded-2xl flex justify-between items-center ${isTop3 ? 'bg-amber-400/20 border-2 border-amber-400/40 text-amber-200' : 'bg-black/30 border border-white/10 text-white'} shadow-md`;
+          item.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="font-black text-xl w-7 text-center">${medal}</span>
+              <span class="text-xl">${p.avatar || '🎓'}</span>
+              <span class="font-extrabold text-base text-white">${p.name}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              ${p.streak >= 2 ? `<span class="px-2 py-0.5 rounded-full bg-orange-500/30 text-orange-300 text-xs font-bold"><i class="fas fa-fire"></i> ${p.streak}</span>` : ''}
+              <span class="font-mono font-black text-lg text-white">${p.score.toLocaleString()} т.</span>
+            </div>
+          `;
+          listEl.appendChild(item);
+        });
+      },
+
+      nextQuestion() {
+        soundManager.playClick();
+        this.loadQuestion(this.questionIndex + 1);
+      },
+
+      showFinalPodium() {
+        app.switchView('hostPodiumView');
+        soundManager.playFanfare();
+
+        // Confetti celebration
+        try {
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+          setTimeout(() => {
+            confetti({ particleCount: 80, angle: 60, spread: 55, origin: { x: 0 } });
+            confetti({ particleCount: 80, angle: 120, spread: 55, origin: { x: 1 } });
+          }, 400);
+        } catch (e) {}
+
+        const sorted = Object.values(this.players).sort((a, b) => b.score - a.score);
+        const p1 = sorted[0] || { name: '---', score: 0 };
+        const p2 = sorted[1] || { name: '---', score: 0 };
+        const p3 = sorted[2] || { name: '---', score: 0 };
+
+        document.getElementById('podium1Name').textContent = p1.name;
+        document.getElementById('podium1Score').textContent = `${p1.score.toLocaleString()} точки`;
+        document.getElementById('podium2Name').textContent = p2.name;
+        document.getElementById('podium2Score').textContent = `${p2.score.toLocaleString()} точки`;
+        document.getElementById('podium3Name').textContent = p3.name;
+        document.getElementById('podium3Score').textContent = `${p3.score.toLocaleString()} точки`;
+
+        // Update cloud game over state
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            updateDoc(roomRef, {
+              status: 'FINISHED',
+              winners: [p1.name, p2.name, p3.name],
+              updatedAt: Date.now()
+            });
+          } catch (e) {}
+        }
+      },
+
+      cleanup() {
+        clearInterval(this.timerInterval);
+        if (this.unsubscribeRoom) this.unsubscribeRoom();
+      }
+    };
+    window.hostController = hostController;
+
+    const playerController = {
+      pin: '',
+      name: '',
+      avatar: '🦁',
+      myUid: '',
+      score: 0,
+      streak: 0,
+      hasVoted: false,
+      questionStartTime: 0,
+      unsubscribeGame: null,
+
+      selectAvatar(emoji) {
+        this.avatar = emoji;
+        document.querySelectorAll('.avatar-opt').forEach(btn => {
+          if (btn.textContent === emoji) {
+            btn.classList.add('border-amber-400');
+            btn.classList.remove('border-transparent');
+          } else {
+            btn.classList.remove('border-amber-400');
+            btn.classList.add('border-transparent');
+          }
+        });
+        soundManager.playClick();
+      },
+
+      async handleJoin(e) {
+        e.preventDefault();
+        soundManager.playClick();
+        const pinInput = document.getElementById('studentPinInput').value.trim();
+        const nameInput = document.getElementById('studentNameInput').value.trim();
+
+        if (!pinInput || !nameInput) {
+          showToast("Моля, попълнете ПИН и Име!", "fa-exclamation-triangle");
+          return;
+        }
+
+        this.pin = pinInput;
+        this.name = nameInput;
+        this.myUid = currentUser?.uid || `player_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+
+        const playerData = {
+          id: this.myUid,
+          name: this.name,
+          avatar: this.avatar,
+          score: 0,
+          streak: 0,
+          lastAnswer: null
+        };
+
+        // Notify local Host if in the same window
+        if (hostController.pin === this.pin) {
+          hostController.onPlayerJoined(playerData);
+        }
+
+        // Notify cross-tab Host via BroadcastChannel immediately
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: 'STUDENT_JOIN',
+            payload: { pin: this.pin, player: playerData }
+          });
+        }
+
+        // Join Room in Firestore if active
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            const snap = await getDoc(roomRef);
+            if (!snap.exists()) {
+              showToast("Стая с този ПИН не е намерена! Провери кода.", "fa-times-circle");
+              return;
+            }
+
+            // Atomic field update prevents erasing existing players
+            await updateDoc(roomRef, {
+              [`players.${this.myUid}`]: playerData,
+              updatedAt: Date.now()
+            });
+
+            this.listenToGameRoom(roomRef);
+          } catch (err) {
+            console.error("Player join cloud error:", err);
+            showToast("Възникна грешка при влизане. Опитай отново.", "fa-times-circle");
+            return;
+          }
+        }
+
+        // Show waiting view
+        document.getElementById('studentGreetingName').textContent = `Здравей, ${this.name}!`;
+        document.getElementById('studentAvatarDisplay').textContent = this.avatar;
+        document.getElementById('studentRoomPin').textContent = this.pin;
+        document.getElementById('studentPlayerName').textContent = this.name;
+        document.getElementById('studentPlayerAvatar').textContent = this.avatar;
+        app.switchView('studentWaitingView');
+      },
+
+      listenToGameRoom(roomRef) {
+        if (!firebaseActive) return;
+        this.unsubscribeGame = onSnapshot(roomRef, (snap) => {
+          if (!snap.exists()) return;
+          const data = snap.data();
+
+          if (data.status === 'QUESTION' && data.questionData) {
+            this.onCloudQuestionStart(data.questionData);
+          } else if (data.status === 'REVEALED') {
+            this.onCloudQuestionRevealed(data.correctAnswer, data.players);
+          } else if (data.status === 'FINISHED') {
+            showToast("Играта завърши! Поздравления!", "fa-trophy");
+          }
+        }, (err) => console.warn("Player snapshot error:", err));
+      },
+
+      onCloudQuestionStart(qData) {
+        this.hasVoted = false;
+        this.questionStartTime = Date.now();
+        document.getElementById('studentQuestionShort').textContent = qData.text;
+        document.getElementById('studentBtnRed').disabled = false;
+        document.getElementById('studentBtnBlue').disabled = false;
+        app.switchView('studentAnswerView');
+      },
+
+      async submitVote(choice) {
+        if (this.hasVoted) return;
+        this.hasVoted = true;
+        soundManager.playClick();
+
+        const timeTaken = (Date.now() - this.questionStartTime) / 1000;
+
+        // Visual feedback
+        document.getElementById('studentBtnRed').disabled = true;
+        document.getElementById('studentBtnBlue').disabled = true;
+
+        document.getElementById('feedbackTitle').textContent = "Отговорът е изпратен!";
+        document.getElementById('feedbackSubtitle').textContent = choice === 'PRAVO' ? "Избра: ПРАВО (Червено)" : "Избра: ОТГОВОРНОСТ (Синьо)";
+        document.getElementById('feedbackPointsBadge').classList.add('hidden');
+        document.getElementById('feedbackIcon').innerHTML = `<i class="fas fa-check-circle text-amber-300"></i>`;
+        app.switchView('studentFeedbackView');
+
+        if (broadcastChannel) {
+          broadcastChannel.postMessage({
+            type: 'STUDENT_ANSWER',
+            payload: {
+              pin: this.pin,
+              uid: this.myUid,
+              answer: { choice, timeTaken, timestamp: Date.now() }
+            }
+          });
+        }
+
+        // Cloud sync answer
+        if (firebaseActive && currentUser) {
+          try {
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', this.pin);
+            await updateDoc(roomRef, {
+              [`answers.${this.myUid}`]: {
+                choice: choice,
+                timeTaken: timeTaken,
+                timestamp: Date.now()
+              }
+            });
+          } catch (e) {
+            console.error("Error submitting answer to cloud:", e);
+          }
+        } else {
+          // Local sync if same instance
+          if (hostController.players[this.myUid]) {
+            hostController.players[this.myUid].lastAnswer = choice;
+            hostController.players[this.myUid].answerTime = timeTaken;
+            hostController.onAnswerReceived();
+          }
+        }
+      },
+
+      onCloudQuestionRevealed(correctAnswer, players) {
+        if (players && players[this.myUid]) {
+          const myData = players[this.myUid];
+          this.score = myData.score || 0;
+          document.getElementById('studentScoreDisplay').textContent = this.score;
+
+          const isCorrect = myData.lastAnswer === correctAnswer;
+          if (isCorrect) {
+            soundManager.playCorrect();
+            document.getElementById('feedbackTitle').textContent = "Браво! Верен отговор!";
+            document.getElementById('feedbackSubtitle').textContent = "Получаваш точки за бързина!";
+            document.getElementById('feedbackIcon').innerHTML = `<i class="fas fa-trophy text-emerald-400"></i>`;
+            document.getElementById('feedbackPointsBadge').classList.remove('hidden');
+            document.getElementById('feedbackPointsBadge').textContent = `Общо: ${this.score} т.`;
+          } else {
+            soundManager.playWrong();
+            document.getElementById('feedbackTitle').textContent = "Упс! Не съвсем.";
+            document.getElementById('feedbackSubtitle').textContent = `Правилният отговор беше: ${correctAnswer === 'PRAVO' ? 'ПРАВО' : 'ОТГОВОРНОСТ'}`;
+            document.getElementById('feedbackIcon').innerHTML = `<i class="fas fa-times-circle text-rose-400"></i>`;
+            document.getElementById('feedbackPointsBadge').classList.add('hidden');
+          }
+        }
+      },
+
+      cleanup() {
+        if (this.unsubscribeGame) this.unsubscribeGame();
+      }
+    };
+    window.playerController = playerController;
+
+    window.onload = async () => {
+      await initFirebase();
+
+      // Check if URL has ?join_pin=XXXX
+      const params = new URLSearchParams(window.location.search);
+      const autoPin = params.get('join_pin');
+      if (autoPin) {
+        app.switchView('studentLoginView');
+        const pinField = document.getElementById('studentPinInput');
+        if (pinField) pinField.value = autoPin;
+      } else {
+        app.switchView('roleSelectView');
+      }
+    };
+  </script>
+</body>
+</html>
